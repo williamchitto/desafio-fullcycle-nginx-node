@@ -1,4 +1,4 @@
-version: '3'
+version: '3.8'  # Versão mínima que suporta 'condition: service_healthy'
 
 services:
   app:
@@ -11,8 +11,8 @@ services:
       - /usr/src/app/node_modules
     tty: true
     depends_on:
-      - db
-    entrypoint: ["./wait-for-it.sh", "db:3306", "--", "npm", "start"]
+      db:
+        condition: service_healthy
 
   db:
     image: mysql:5.7
@@ -25,6 +25,12 @@ services:
     environment:
       - MYSQL_DATABASE=nodedb
       - MYSQL_ROOT_PASSWORD=password
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
   nginx:
     build:
